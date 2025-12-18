@@ -43,8 +43,10 @@ The message usually indicates **a different ESLint parser/config trying to parse
 2. Ensure the ESLint runner is CRA’s config and not treating `.js/.jsx` as JSON:
    - no `jsonc-eslint-parser` override for `**/*.js` / `**/*.jsx`
    - no flat-config `eslint.config.*` referenced
-3. Clear CRA/ESLint caches:
-   - delete `node_modules/.cache/.eslintcache`
-   - restart `npm start`
+3. Clear CRA/ESLint caches (preferred: automated script):
+   - run: `npm run lint:clear`
+   - then restart: `npm start`
 
-(Deletion is intentionally not automated by this agent due to safety restrictions on recursive delete commands in this environment.)
+Notes:
+- This repo intentionally keeps `DISABLE_ESLINT_PLUGIN=true` for `npm run build` to avoid build-time lint failures.
+- `npm start` still runs CRA’s ESLint overlay; if it ever shows a JSON-parse error for `.js/.jsx`, it’s commonly caused by a stale/corrupted ESLint cache or an external ESLint runner/editor using a different config.
