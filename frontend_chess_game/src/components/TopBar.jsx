@@ -13,8 +13,15 @@ export default function TopBar({
   featureFlags,
   pieceTheme,
   onPieceThemeChange,
+
+  clockPresetLabel,
+  onClockPresetChange,
+  incrementMode,
+  onIncrementModeChange,
+  clockPresets,
 }) {
   /** This is a public function. Renders the application title and top game controls. */
+  const presets = clockPresets || [];
   return (
     <div className="topBar">
       <div className="topBar__left">
@@ -40,6 +47,37 @@ export default function TopBar({
             >
               <option value="pvp">Two player</option>
               {featureFlags.ai ? <option value="ai">Vs AI</option> : null}
+            </select>
+          </label>
+
+          <label className="selectLabel">
+            Time
+            <select
+              className="select"
+              value={clockPresetLabel || (presets[0]?.label ?? "")}
+              onChange={(e) => onClockPresetChange?.(e.target.value)}
+              aria-label="Select time control preset"
+              disabled={!onClockPresetChange}
+            >
+              {presets.map((p) => (
+                <option key={p.label} value={p.label}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="selectLabel">
+            Increment type
+            <select
+              className="select"
+              value={incrementMode || "fischer"}
+              onChange={(e) => onIncrementModeChange?.(e.target.value)}
+              aria-label="Select increment type"
+              disabled={!onIncrementModeChange}
+            >
+              <option value="fischer">Fischer</option>
+              <option value="bronstein">Bronstein</option>
             </select>
           </label>
 

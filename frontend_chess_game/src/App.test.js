@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import App from "./App";
+import { applyPostMoveTimeAdjustment } from "./game/clock";
 
 function getSquareButtons(container) {
   return container.querySelectorAll("button.sq");
@@ -57,4 +58,26 @@ test("AI makes a move without freezing (timer-driven)", () => {
   expect(screen.getByText(/White to move/i)).toBeInTheDocument();
 
   jest.useRealTimers();
+});
+
+test("Fischer increment adds increment after a move", () => {
+  // Example: player ends move with 57.0s left after spending time, increment is +2s.
+  const afterSpendMs = 57_000;
+  const spentMs = 3_000;
+  const out = applyPostMoveTimeAdjustment(afterSpendMs, spentMs, "fischer", 2);
+  expect(out).toBe(59_000);
+});
+
+test("Bronstein delay restores up to delay, capped by time spent", () => {
+  // Delay 5s; if spent only 2s, restore only 2s.
+  const afterSpendMs = 58_000;
+  const spentMs = 2_000;
+  const out = applyPostMoveTimeAdjustment(afterSpendMs, spentMs, "bronstein", 5);
+  expect(out).toBe(60_000);
+
+  // If spent 7s, restore only 5s.
+  const afterSpendMs2 = 53_000;
+  const spentMs2 = 7_000;
+  const out2 = applyPostMoveTimeAdjustment(afterSpendMs2, spentMs2, "bronstein", 5);
+  expect(out2).toBe(58_000);
 });

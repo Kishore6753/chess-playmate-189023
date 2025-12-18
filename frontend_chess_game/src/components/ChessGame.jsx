@@ -4,8 +4,15 @@ import TopBar from "./TopBar";
 import StatusPanel from "./StatusPanel";
 import MoveList from "./MoveList";
 import PromotionModal from "./PromotionModal";
+import Clock from "./Clock";
 import { getFeatureFlags } from "../config/featureFlags";
-import { chessReducer, createInitialState, isAiTurn, humanColor } from "../game/state";
+import {
+  chessReducer,
+  createInitialState,
+  isAiTurn,
+  humanColor,
+  CLOCK_PRESETS,
+} from "../game/state";
 import { generateLegalMoves } from "../game/movegen";
 import { pickBestMove } from "../ai/minimax";
 
@@ -46,10 +53,46 @@ export default function ChessGame() {
     });
   }, [state.lastMove, state.sideToMove, featureFlags.promotionChoice, state, featureFlags]);
 
+  // Clock ticking loop (rAF-based): dispatch delta times while clock is running.
+  useEffect(() => {
+    if (!state.clock?.enabled) return;
+    if (!state.clock.running) return;
+    if (state.status?.result !== "playing") return;
+
+    let raf = 0;
+    let last = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+
+    const loop = (t) => {
+      const now = typeof t === "number" ? t : (typeof performance !== "undefined" && performance.now ? performance.now() : Date.now());
+      const delta = now - last;
+      last = now;
+
+      // To keep reducer updates stable, clamp large delta spikes (tab switching).
+      const clamped = Math.max(0, Math.min(1000, delta));
+      if (clamped > 0) dispatch({ type: "CLOCK_TICK", deltaMs: clamped });
+
+      raf = requestAnimationFrame(loop);
+    };
+
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [state.clock?.enabled, state.clock?.running, state.status?.result]);
+
   // AI turn: schedule computation so UI stays responsive.
+  // We pause the clock while AI is thinking so the human doesn't "lose time" waiting on the browser.
+  // The AI also doesn't consume time by default for this app.
   useEffect(() => {
     if (!state.ai.enabled || state.mode !== "ai") return;
-    if (!isAiTurn(state)) return;
+
+    const aiTurn = isAiTurn(state);
+
+    if (aiTurn && state.clock?.enabled) {
+      dispatch({ type: "CLOCK_PAUSE", reason: "aiThinking" });
+    } else if (!aiTurn && state.clock?.enabled && state.status?.result === "playing") {
+      dispatch({ type: "CLOCK_RESUME" });
+    }
+
+    if (!aiTurn) return;
 
     const handle = setTimeout(() => {
       const depth = Math.max(1, Math.min(3, state.ai.depth || 2));
@@ -98,6 +141,14 @@ export default function ChessGame() {
         featureFlags={featureFlags}
         pieceTheme={pieceTheme}
         onPieceThemeChange={setPieceTheme}
+        clockPresetLabel={state.clock?.preset?.label}
+        clockPresets={CLOCK_PRESETS}
+        incrementMode={state.clock?.settings?.mode || "fischer"}
+        onClockPresetChange={(label) => {
+          const preset = CLOCK_PRESETS.find((p) => p.label === label) || CLOCK_PRESETS[0];
+          dispatch({ type: "SET_CLOCK_PRESET", preset, incrementMode: state.clock?.settings?.mode || "fischer" });
+        }}
+        onIncrementModeChange={(m) => dispatch({ type: "SET_INCREMENT_MODE", mode: m })}
       />
 
       <main className="layout">
@@ -114,10 +165,35 @@ export default function ChessGame() {
         </section>
 
         <aside className="sideSection" aria-label="Game info">
+          <div className="panel">
+            <div className="panel__title">Clocks</div>
+            <div className="clockRow" aria-label="Chess clocks">
+              <Clock
+                label="White"
+                color="w"
+                remainingMs={state.clock?.remainingMs?.w ?? 0}
+                running={Boolean(state.clock?.running && state.clock?.activeColor === "w")}
+                flagged={Boolean(state.clock?.flags?.w)}
+                modeLabel={state.clock?.settings?.mode === "bronstein" ? "Delay" : "Inc"}
+                incrementOrDelaySeconds={state.clock?.settings?.incSeconds ?? 0}
+              />
+              <Clock
+                label="Black"
+                color="b"
+                remainingMs={state.clock?.remainingMs?.b ?? 0}
+                running={Boolean(state.clock?.running && state.clock?.activeColor === "b")}
+                flagged={Boolean(state.clock?.flags?.b)}
+                modeLabel={state.clock?.settings?.mode === "bronstein" ? "Delay" : "Inc"}
+                incrementOrDelaySeconds={state.clock?.settings?.incSeconds ?? 0}
+              />
+            </div>
+          </div>
+
           <StatusPanel
             status={state.status}
             mode={state.mode}
             aiEnabled={state.mode === "ai" && state.ai.enabled}
+            clock={state.clock}
           />
           <MoveList history={state.history} />
         </aside>
