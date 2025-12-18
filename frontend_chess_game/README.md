@@ -1,82 +1,84 @@
-# Lightweight React Template for KAVIA
+# Chess Playmate (React)
 
-This project provides a minimal React template with a clean, modern UI and minimal dependencies.
+A lightweight React chess app with **legal move validation** and an optional **basic AI**.  
+No external chess libraries are used—move generation, rules, and AI are implemented in this repo.
+
+## Quick start
+
+From `chess-playmate-189023/frontend_chess_game`:
+
+```bash
+npm install
+npm start
+```
+
+Open http://localhost:3000
+
+## Running tests
+
+```bash
+CI=true npm test
+```
 
 ## Features
 
-- **Lightweight**: No heavy UI frameworks - uses only vanilla CSS and React
-- **Modern UI**: Clean, responsive design with KAVIA brand styling
-- **Fast**: Minimal dependencies for quick loading times
-- **Simple**: Easy to understand and modify
+- Playable chess board (64 interactive squares)
+- Legal move validation:
+  - Castling
+  - En passant
+  - Promotion (defaults to Queen; optional promotion picker)
+- Game status: side to move + check / checkmate / stalemate detection
+- Move history list
+- Optional “Vs AI” mode (depth-limited minimax with alpha-beta, scheduled with `setTimeout` to keep UI responsive)
 
-## Getting Started
+## Feature flags
 
-In the project directory, you can run:
+Set environment variable `REACT_APP_FEATURE_FLAGS` to a comma/space-separated list.
 
-### `npm start`
+Examples:
 
-Runs the app in development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```bash
+# Enable only two-player mode with coordinates and legal move hints
+REACT_APP_FEATURE_FLAGS="coords,legalMoves"
 
-### `npm test`
-
-Launches the test runner in interactive watch mode.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-## Customization
-
-### Colors
-
-The main brand colors are defined as CSS variables in `src/App.css`:
-
-```css
-:root {
-  --kavia-orange: #E87A41;
-  --kavia-dark: #1A1A1A;
-  --text-color: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --border-color: rgba(255, 255, 255, 0.1);
-}
+# Enable everything (default behavior if unset)
+# leave REACT_APP_FEATURE_FLAGS unset
 ```
 
-### Components
+Supported flags:
 
-This template uses pure HTML/CSS components instead of a UI framework. You can find component styles in `src/App.css`. 
+- `ai` – enable Vs AI mode (default: enabled)
+- `showLegalMoves` / `legalMoves` – highlight legal destinations (default: enabled)
+- `undo` – show Undo button (default: enabled)
+- `promotionChoice` / `promotion` – show promotion picker modal (default: enabled)
+- `coordinates` / `coords` – show square coordinates overlay (default: enabled)
+- `aiRandomTieBreak` / `aiRandom` – allow random tie-break among near-equal AI moves (default: enabled)
+- `darkMode` / `dark` – experimental, only enabled when `REACT_APP_EXPERIMENTS_ENABLED=true`
 
-Common components include:
-- Buttons (`.btn`, `.btn-large`)
-- Container (`.container`)
-- Navigation (`.navbar`)
-- Typography (`.title`, `.subtitle`, `.description`)
+Experiments gate:
 
-## Learn More
+- `REACT_APP_EXPERIMENTS_ENABLED=true` – enables opt-in experimental flags (currently only `darkMode`)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Architecture overview
 
-### Code Splitting
+- `src/components/*` – UI components (Board, Square, panels, etc.)
+- `src/game/*`
+  - `fen.js` – FEN parsing/serialization (start position)
+  - `rules.js` – attack detection and check detection helpers
+  - `movegen.js` – pseudo-legal and legal move generation + move application
+  - `state.js` – `useReducer` state management and game actions
+- `src/ai/*`
+  - `eval.js` – material + small piece-square tables evaluation
+  - `minimax.js` – depth-limited minimax + alpha-beta pruning
+- `src/config/featureFlags.js` – feature flag parsing from environment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Known limitations
 
-### Analyzing the Bundle Size
+- The AI is intentionally basic (depth 1–3) and not optimized.
+- Draw rules (threefold repetition, 50-move rule) are not fully implemented.
+- Checkmate/stalemate detection is implemented through legal move availability + check status.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Environment variables
 
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This container supports the standard `REACT_APP_*` variables provided by the deployment environment.
+Only `REACT_APP_FEATURE_FLAGS` and `REACT_APP_EXPERIMENTS_ENABLED` are required for this app’s optional features.
