@@ -17,6 +17,7 @@ const PIECE_GLYPH = {
   p: "♟",
 };
 
+// PUBLIC_INTERFACE
 export default function Board({
   board,
   selected,
@@ -25,6 +26,7 @@ export default function Board({
   onSquareClick,
   showCoordinates,
 }) {
+  /** This is a public function. Renders the 8x8 board grid and handles square selection. */
   const legalDestinations = new Set((legalMoves || []).map((m) => m.to));
   const lastFrom = lastMove?.from ?? null;
   const lastTo = lastMove?.to ?? null;
@@ -49,7 +51,14 @@ export default function Board({
                 lastMove={isLast}
                 onClick={() => onSquareClick(idx)}
               >
-                <span className="piece" aria-label={piece ? `${piece} on ${idxToCoord(idx)}` : `Empty ${idxToCoord(idx)}`}>
+                <span
+                  className="piece"
+                  aria-label={
+                    piece
+                      ? `${piece} on ${idxToCoord(idx)}`
+                      : `Empty ${idxToCoord(idx)}`
+                  }
+                >
                   {piece ? PIECE_GLYPH[piece] : ""}
                 </span>
 

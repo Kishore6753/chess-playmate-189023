@@ -1,5 +1,6 @@
 import React from "react";
 
+// PUBLIC_INTERFACE
 export default function TopBar({
   mode,
   onModeChange,
@@ -11,11 +12,14 @@ export default function TopBar({
   onAiDepthChange,
   featureFlags,
 }) {
+  /** This is a public function. Renders the application title and top game controls. */
   return (
     <div className="topBar">
       <div className="topBar__left">
         <h1 className="appTitle">Chess Playmate</h1>
-        <div className="tagline">A lightweight chess board with legal moves and optional AI.</div>
+        <div className="tagline">
+          A lightweight chess board with legal moves and optional AI.
+        </div>
       </div>
 
       <div className="topBar__right">
@@ -38,7 +42,12 @@ export default function TopBar({
           </label>
 
           {featureFlags.undo ? (
-            <button className="btn btn--secondary" type="button" onClick={onUndo} disabled={!canUndo}>
+            <button
+              className="btn btn--secondary"
+              type="button"
+              onClick={onUndo}
+              disabled={!canUndo}
+            >
               Undo
             </button>
           ) : null}

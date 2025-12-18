@@ -14,7 +14,9 @@ function isPromotionMove(move, piece) {
   return piece.toLowerCase() === "p" && Boolean(move.promotion);
 }
 
+// PUBLIC_INTERFACE
 export default function ChessGame() {
+  /** This is a public function. Main game container: controls, board, sidebar panels, and promotion modal. */
   const featureFlags = useMemo(() => getFeatureFlags(), []);
   const [state, dispatch] = useReducer(chessReducer, featureFlags, createInitialState);
 
@@ -31,10 +33,14 @@ export default function ChessGame() {
 
     // Only human should pick promotion, not AI.
     const human = humanColor(state);
-    const movedByHuman = (state.sideToMove === human) ? false : true; // sideToMove already flipped after move
+    // sideToMove already flipped after move, so the mover was the opposite side
+    const movedByHuman = state.sideToMove !== human;
     if (!movedByHuman) return;
 
-    setPromotionPending({ move: mv, color: originalPiece === originalPiece.toUpperCase() ? "w" : "b" });
+    setPromotionPending({
+      move: mv,
+      color: originalPiece === originalPiece.toUpperCase() ? "w" : "b",
+    });
   }, [state.lastMove, state.sideToMove, featureFlags.promotionChoice, state, featureFlags]);
 
   // AI turn: schedule computation so UI stays responsive.
@@ -44,7 +50,9 @@ export default function ChessGame() {
 
     const handle = setTimeout(() => {
       const depth = Math.max(1, Math.min(3, state.ai.depth || 2));
-      const { move } = pickBestMove(state, depth, { randomTieBreak: featureFlags.aiRandomTieBreak });
+      const { move } = pickBestMove(state, depth, {
+        randomTieBreak: featureFlags.aiRandomTieBreak,
+      });
       if (move) dispatch({ type: "MAKE_MOVE", move });
     }, 10);
 
@@ -62,18 +70,15 @@ export default function ChessGame() {
   };
 
   const onNewGame = () => dispatch({ type: "NEW_GAME", featureFlags });
-
   const onUndo = () => dispatch({ type: "UNDO" });
-
   const onModeChange = (mode) => dispatch({ type: "SET_MODE", mode });
-
   const onAiDepthChange = (depth) => dispatch({ type: "SET_AI_DEPTH", depth });
 
   // For highlighting legal moves, we use reducer's computed legalMoves when selected,
   // but keep fallback for safety.
   const legalMoves = state.selected != null ? state.legalMoves : [];
 
-  // Provide a stable list for debugging/testing if needed
+  // Provide a stable reference for debugging/testing if needed (avoid unused-import lint issues if refactors happen)
   void generateLegalMoves;
 
   return (
@@ -103,7 +108,11 @@ export default function ChessGame() {
         </section>
 
         <aside className="sideSection" aria-label="Game info">
-          <StatusPanel status={state.status} mode={state.mode} aiEnabled={state.mode === "ai" && state.ai.enabled} />
+          <StatusPanel
+            status={state.status}
+            mode={state.mode}
+            aiEnabled={state.mode === "ai" && state.ai.enabled}
+          />
           <MoveList history={state.history} />
         </aside>
       </main>
@@ -112,7 +121,11 @@ export default function ChessGame() {
         open={Boolean(promotionPending)}
         color={promotionPending?.color}
         onPick={(promotion) => {
-          dispatch({ type: "PROMOTE_LAST", move: promotionPending.move, promotion });
+          dispatch({
+            type: "PROMOTE_LAST",
+            move: promotionPending.move,
+            promotion,
+          });
           setPromotionPending(null);
         }}
         onClose={() => setPromotionPending(null)}
