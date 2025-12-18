@@ -9,6 +9,10 @@ test("renders a playable chess board with 64 squares", () => {
   const { container } = render(<App />);
   const squares = getSquareButtons(container);
   expect(squares.length).toBe(64);
+
+  // Starting position should render some piece images (SVGs) as <img>.
+  const imgs = container.querySelectorAll("img.pieceImg");
+  expect(imgs.length).toBeGreaterThan(0);
 });
 
 test("a basic legal move executes and turn switches", () => {

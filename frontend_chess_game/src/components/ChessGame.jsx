@@ -22,6 +22,9 @@ export default function ChessGame() {
 
   const [promotionPending, setPromotionPending] = useState(null);
 
+  // Piece theme scaffold (single theme for now). This makes it easy to add more sets later.
+  const [pieceTheme, setPieceTheme] = useState("default");
+
   // When a move is made that is a promotion and promotionChoice flag is enabled,
   // show modal to allow user to change the promoted piece.
   useEffect(() => {
@@ -93,6 +96,8 @@ export default function ChessGame() {
         aiDepth={state.ai.depth}
         onAiDepthChange={onAiDepthChange}
         featureFlags={featureFlags}
+        pieceTheme={pieceTheme}
+        onPieceThemeChange={setPieceTheme}
       />
 
       <main className="layout">
@@ -104,6 +109,7 @@ export default function ChessGame() {
             lastMove={state.lastMove}
             onSquareClick={onSquareClick}
             showCoordinates={featureFlags.coordinates}
+            pieceTheme={pieceTheme}
           />
         </section>
 

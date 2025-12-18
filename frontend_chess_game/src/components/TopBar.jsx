@@ -11,6 +11,8 @@ export default function TopBar({
   aiDepth,
   onAiDepthChange,
   featureFlags,
+  pieceTheme,
+  onPieceThemeChange,
 }) {
   /** This is a public function. Renders the application title and top game controls. */
   return (
@@ -38,6 +40,20 @@ export default function TopBar({
             >
               <option value="pvp">Two player</option>
               {featureFlags.ai ? <option value="ai">Vs AI</option> : null}
+            </select>
+          </label>
+
+          <label className="selectLabel">
+            Pieces
+            <select
+              className="select"
+              value={pieceTheme || "default"}
+              onChange={(e) => onPieceThemeChange?.(e.target.value)}
+              aria-label="Select piece theme"
+              disabled={!onPieceThemeChange}
+              title={!onPieceThemeChange ? "Theme switching scaffold (single set for now)" : undefined}
+            >
+              <option value="default">Default</option>
             </select>
           </label>
 

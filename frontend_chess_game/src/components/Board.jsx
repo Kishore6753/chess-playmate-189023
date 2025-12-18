@@ -2,20 +2,27 @@ import React from "react";
 import Square from "./Square";
 import { FILES, RANKS, idxToCoord } from "../utils/coords";
 
-const PIECE_GLYPH = {
-  K: "♔",
-  Q: "♕",
-  R: "♖",
-  B: "♗",
-  N: "♘",
-  P: "♙",
-  k: "♚",
-  q: "♛",
-  r: "♜",
-  b: "♝",
-  n: "♞",
-  p: "♟",
+const PIECE_NAME = {
+  K: "White king",
+  Q: "White queen",
+  R: "White rook",
+  B: "White bishop",
+  N: "White knight",
+  P: "White pawn",
+  k: "Black king",
+  q: "Black queen",
+  r: "Black rook",
+  b: "Black bishop",
+  n: "Black knight",
+  p: "Black pawn",
 };
+
+function pieceSrc(piece, theme = "default") {
+  if (!piece) return null;
+  // assets path is relative to this file (src/components -> src/assets)
+  // Theme scaffold: keep "default" now; structure supports adding more later.
+  return `../assets/pieces/${theme}/${piece === piece.toUpperCase() ? "w" : "b"}${piece.toUpperCase()}.svg`;
+}
 
 // PUBLIC_INTERFACE
 export default function Board({
@@ -25,6 +32,7 @@ export default function Board({
   lastMove,
   onSquareClick,
   showCoordinates,
+  pieceTheme = "default",
 }) {
   /** This is a public function. Renders the 8x8 board grid and handles square selection. */
   const legalDestinations = new Set((legalMoves || []).map((m) => m.to));
@@ -42,6 +50,9 @@ export default function Board({
           const isHighlight = legalDestinations.has(idx);
           const isLast = idx === lastFrom || idx === lastTo;
 
+          const src = piece ? pieceSrc(piece, pieceTheme) : null;
+          const alt = piece ? PIECE_NAME[piece] ?? `${piece}` : "";
+
           return (
             <div key={idx} className="boardCell">
               <Square
@@ -51,15 +62,15 @@ export default function Board({
                 lastMove={isLast}
                 onClick={() => onSquareClick(idx)}
               >
-                <span
-                  className="piece"
-                  aria-label={
-                    piece
-                      ? `${piece} on ${idxToCoord(idx)}`
-                      : `Empty ${idxToCoord(idx)}`
-                  }
-                >
-                  {piece ? PIECE_GLYPH[piece] : ""}
+                <span className="pieceLayer" aria-label={piece ? `${alt} on ${idxToCoord(idx)}` : `Empty ${idxToCoord(idx)}`}>
+                  {piece ? (
+                    <img
+                      className="pieceImg"
+                      src={src}
+                      alt={alt}
+                      draggable="false"
+                    />
+                  ) : null}
                 </span>
 
                 {showCoordinates ? (
