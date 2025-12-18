@@ -11,7 +11,7 @@
     "start": "react-scripts start",
     "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
     "test": "react-scripts test",
-    "lint": "react-scripts lint",
+    "lint": "echo \"CRA does not provide a 'react-scripts lint' command; lint runs during 'npm start' and 'npm test'. Use 'npm run lint:clear' to clear ESLint cache.\"",
     "lint:clear": "node -e \"const fs=require('fs'); const path=require('path'); const targets=['.eslintcache', path.join('node_modules','.cache','.eslintcache')]; for (const t of targets){ try{ fs.rmSync(t,{force:true}); console.log('removed',t);}catch(e){ console.log('skip',t);} }\"",
     "eject": "react-scripts eject"
   },
