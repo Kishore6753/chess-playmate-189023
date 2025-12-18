@@ -34,7 +34,7 @@ The goal is an approachable, dependency-light chess front-end that is easy to un
 - Configuration:
   - src/config/featureFlags.js parses feature flags from REACT_APP_* environment variables
 
-For full details, see ARCHITECTURE.md.
+For full details, see DEVELOPER_GUIDE.md.
 
 ## Setup and running locally
 
