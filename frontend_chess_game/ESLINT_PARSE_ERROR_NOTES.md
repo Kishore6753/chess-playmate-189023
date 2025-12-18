@@ -19,18 +19,32 @@ This repo previously reported:
 "eslintConfig": { "extends": "react-app" }
 ```
 
-- Verification commands (run in `frontend_chess_game`):
-  - `CI=true npm test -- --watchAll=false` ✅ passes
-  - `npm run build` ✅ passes (note: build uses `DISABLE_ESLINT_PLUGIN=true`)
-  - `npm start` ✅ dev server compiles without ESLint overlay errors
+- No `.eslintrc*`, `eslint.config.*`, or other ESLint override files are present in this container.
 
-## Likely explanation if the error reappears elsewhere
+## Verification (this workspace)
 
-The error message often indicates **a different ESLint parser/config trying to parse a file as JSON** (or a corrupted file read), e.g.:
+- `CI=true npm test -- --watchAll=false` ✅ passes
+- `npm run build` ✅ passes (note: build uses `DISABLE_ESLINT_PLUGIN=true`)
 
-- a corrupted/partial file on disk in another environment
-- an editor/formatter writing a partial file
-- an external ESLint runner (VSCode extension) using a different config or reading an incomplete file snapshot
-- a transient CI artifact / stale overlay output
+## Why this error often happens
 
-If reproduced again, re-check the raw bytes of the failing file(s) in that environment, and confirm the ESLint runner is using CRA’s config and not treating `.js/.jsx` as JSON.
+The message usually indicates **a different ESLint parser/config trying to parse a file as JSON** (or a corrupted file read), e.g.:
+
+- a corrupted/partial file snapshot written by an editor/formatter
+- an external ESLint runner (VSCode extension) using a different config and/or reading an incomplete file snapshot
+- a stale or corrupted ESLint cache (`node_modules/.cache/.eslintcache`)
+- transient overlay output from a previous run
+
+## Recovery steps if it reappears in another environment
+
+1. Re-check raw bytes of the failing file(s) in that environment:
+   - ensure the file begins with `import ...` and does not start with `{`
+   - ensure there is no BOM (`EF BB BF`) or truncated block comment
+2. Ensure the ESLint runner is CRA’s config and not treating `.js/.jsx` as JSON:
+   - no `jsonc-eslint-parser` override for `**/*.js` / `**/*.jsx`
+   - no flat-config `eslint.config.*` referenced
+3. Clear CRA/ESLint caches:
+   - delete `node_modules/.cache/.eslintcache`
+   - restart `npm start`
+
+(Deletion is intentionally not automated by this agent due to safety restrictions on recursive delete commands in this environment.)
